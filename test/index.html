@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEA Detector</title>
+</head>
+
+<body style="padding: 1em; font-family: Arial, Helvetica, sans-serif;">
+    <h1>Disposable Email Detector</h1>
+    <form id="dea-form">
+        <label for="value-input">Email Address: </label>
+        <input type="text" id="value-input" name="value" placeholder="jhondoe@gmail.com" required>
+        <button type="submit">Submit</button>
+    </form>
+    <div id="response-message" style="padding: .5em 0; font-weight: bold;"></div>
+    <div id="response-details" style="padding: .5em 0;"></div>
+
+
+    <script>
+        document.getElementById('dea-form').addEventListener('submit', async function (ev) {
+            ev.preventDefault();
+
+            const inputValue = document.getElementById('value-input').value;
+            const responseDiv = document.getElementById('response-message');
+            const detialsDiv = document.getElementById('response-details');
+            responseDiv.textContent = 'Checking...';
+            responseDiv.style.color = 'gray';
+
+            try {
+                const response = await fetch('/dea-detector', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ value: inputValue })
+                });
+
+                const res = await response.json();
+
+                if (response.ok) {
+                    if (res.data.isDEA) {
+                        console.log(res.data);
+                        responseDiv.textContent = `'${res.value}' is a Disposable Email Address.`;
+                        detialsDiv.innerText = Object.keys(res.data.details).map(key => `${key}: ${res.data.details[key]} \n`).join('');
+                        responseDiv.style.color = 'red';
+                    } else {
+                        responseDiv.textContent = `'${res.value}' is NOT a Disposable Email Address.`;
+                        detialsDiv.innerText = Object.keys(res.data.details).map(key => `${key}: ${res.data.details[key]} \n`).join('');
+                        responseDiv.style.color = 'green';
+                    }
+                } else {
+                    responseDiv.textContent = `Error: ${res.error}`;
+                    responseDiv.style.color = 'red';
+                }
+            } catch (error) {
+                responseDiv.textContent = 'An error occurred. Please try again.';
+                responseDiv.style.color = 'red';
+                console.error('Fetch error:', error);
+            }
+        });
+    </script>
+</body>
+
+</html>
