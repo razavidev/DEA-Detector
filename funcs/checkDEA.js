@@ -1,38 +1,6 @@
 import { promises as dns } from "dns";
-import fs from 'fs/promises';
-import path from "path";
+import { queryBlacklist } from "./queryBlacklist.js";
 
-const getData = async function (d) {
-    const txt = await dns.resolveTxt(d);
-    const mx = await dns.resolveMx(d);
-    const aaaa = await dns.resolve6(d);
-    const aa = await dns.resolve4(d);
-
-    console.log('TXT: ===========================================================');
-    console.log(txt);
-    console.log('MX: ===========================================================');
-    console.log(mx);
-    console.log('IPv6: ===========================================================');
-    console.log(aaaa);
-    console.log('IPv4============================================================');
-    console.log(aa);
-};
-
-
-async function searchBlacklist(value) {
-    let blacklistSet;
-    try {
-        const listFilePath = '../files/blacklist.txt';
-        console.log(path);
-        const fileContent = await fs.readFile(listFilePath, 'utf8');
-        const items = fileContent.split('\n').map(item => item.trim());
-        blacklistSet = new Set(items);
-    } catch (error) {
-        throw new Error('Error loading the blacklist file: ' + error.message);
-    }
-    // console.log('isBlacklisted: '+blacklistSet.has(value.trim()))
-    return blacklistSet.has(value.trim());
-}
 
 function shannonEntropy(s) {
     if (s.length === 0) return 0;
@@ -159,7 +127,7 @@ async function checkEmailForDEA(email) {
     // Factor 2: DNS Record Checks
     try {
         const mxRecords = await dns.resolveMx(details.domain);
-        console.log(mxRecords);
+        // console.log(mxRecords);
         details.mxRecordsFound = mxRecords && mxRecords.length > 0;
         if (details.mxRecordsFound) {
             // Check for suspicious MX hostnames
@@ -184,7 +152,7 @@ async function checkEmailForDEA(email) {
 
     try {
         const txtRecords = await dns.resolveTxt(details.domain);
-        console.log(txtRecords);
+        // console.log(txtRecords);
         details.spfRecordFound = txtRecords.some(
             record => record.some(txt => txt.startsWith('v=spf1'))
         );
@@ -212,7 +180,7 @@ async function checkEmailForDEA(email) {
     score += shufflenessScore * 0.3;
 
     // Factor 4: Is Domain Blacklisted (Weight: 0.7)
-    const isBlacklisted = await searchBlacklist(details.domain);
+    const isBlacklisted = await queryBlacklist(details.domain);
     details.isBlacklisted = isBlacklisted;
     score += isBlacklisted ? 0.7 : 0;
 
