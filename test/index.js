@@ -1,5 +1,6 @@
 import express, { json } from 'express';
 import checkEmailForDEA from '../funcs/checkDEA.js';
+import cronJob from '../funcs/cronjob.js';
 import path, { dirname } from 'path'
 import { fileURLToPath } from 'url';
 
@@ -33,6 +34,7 @@ app.post('/dea-detector', async (req, res) => {
 // Start the server and pre-load the list
 async function startServer() {
     try {
+        await cronJob()
         await checkEmailForDEA('initial_load'); // Trigger the initial load
         app.listen(port, () => {
             console.log(`Server listening on http://localhost:${port}`);
@@ -47,40 +49,40 @@ startServer();
 
 
 // --- TESTING ---
-(async () => {
-    const emailsToTest = [
-        'miran@hisrher.com',
-        'turkey93289@aminating.com',
-        'm.razavi.dev@gmail.com',
-        'mr.razavidev@gmail.com',
-        'contact@razavi.dev',
-        'mortaza.razavi@gmail.com',
-        'press@google.com',
-        'media.help@apple.com',
-        'press@amazon.com',
-        'news@microsoft.com',
-        'press@twitter.com',
-        'press@fb.com',
-        'pr@adobe.com',
-        'feedback@nytimes.com',
-        'webmaster@coca-cola.com',
-        'press@starbucks.com',
-        'press@tesla.com',
-        'media.relations@nike.com',
-        'info@ibm.com',
-        'info@harvard.edu',
-        'news@walmart.com',
-        'mediarelations@fedex.com',
-        'media@delta.com',
-        'press.corporate@disney.com',
-        'mediarelations@boeing.com',
-        "sardine59005@mailshan.com",
-        "mitefid250@cspaus.com",
-    ];
+// (async () => {
+//     const emailsToTest = [
+//         'miran@hisrher.com',
+//         'turkey93289@aminating.com',
+//         'm.razavi.dev@gmail.com',
+//         'mr.razavidev@gmail.com',
+//         'contact@razavi.dev',
+//         'mortaza.razavi@gmail.com',
+//         'press@google.com',
+//         'media.help@apple.com',
+//         'press@amazon.com',
+//         'news@microsoft.com',
+//         'press@twitter.com',
+//         'press@fb.com',
+//         'pr@adobe.com',
+//         'feedback@nytimes.com',
+//         'webmaster@coca-cola.com',
+//         'press@starbucks.com',
+//         'press@tesla.com',
+//         'media.relations@nike.com',
+//         'info@ibm.com',
+//         'info@harvard.edu',
+//         'news@walmart.com',
+//         'mediarelations@fedex.com',
+//         'media@delta.com',
+//         'press.corporate@disney.com',
+//         'mediarelations@boeing.com',
+//         "sardine59005@mailshan.com",
+//         "mitefid250@cspaus.com",
+//     ];
 
-    // console.log('--- Comprehensive DEA Risk Assessment ---');
-    // for (const email of emailsToTest) {
-    //     const result = await checkEmailForDEA(email);
-    //     console.log(`Email: ${email.padEnd(25)} => Score: ${result.score.toFixed(2)} (Details: ${JSON.stringify(result.details, null, 2)})`);
-    // }
-})();
+//     console.log('--- Comprehensive DEA Risk Assessment ---');
+//     for (const email of emailsToTest) {
+//         const result = await checkEmailForDEA(email);
+//         console.log(`Email: ${email.padEnd(25)} => Score: ${result.score.toFixed(2)} (Details: ${JSON.stringify(result.details, null, 2)})`);
+//     }
+// })();
