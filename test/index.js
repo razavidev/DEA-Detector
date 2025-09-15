@@ -9,6 +9,7 @@ const __dirname = path.dirname(__filename)
 
 const app = express();
 const port = process.env.PORT || 3000;
+const host  = "0.0.0.0"
 
 app.use(json());
 
@@ -36,7 +37,7 @@ async function startServer() {
     try {
         await cronJob()
         await checkEmailForDEA('initial_load'); // Trigger the initial load
-        app.listen(port, () => {
+        app.listen(port, host, () => {
             console.log(`Server listening on http://localhost:${port}`);
         });
     } catch (error) {
