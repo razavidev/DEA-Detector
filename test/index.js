@@ -1,6 +1,6 @@
 import express, { json } from 'express';
-import checkEmailForDEA from '../funcs/checkDEA.js';
-import cronJob from '../funcs/cronjob.js';
+import verifyEmail from '../funcs/verifyEmail.js';
+import getRemoteBlacklist from '../funcs/getRemoteBlacklist.js';
 import path, { dirname } from 'path'
 import { fileURLToPath } from 'url';
 
@@ -19,14 +19,17 @@ app.get('/', (req, res) => {
 
 app.post('/dea-detector', async (req, res) => {
     const { value } = req.body;
+    console.log('---NEW REQUEST---')
     
     if (!value) {
         return res.status(400).json({ error: 'Value is required' });
     }
     
     try {
-        const data = await checkEmailForDEA(value)
+        const data = await verifyEmail(value)
+
         res.json({ value, data });
+        console.log('---RESPONSE SENT---')
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
     }
@@ -35,8 +38,8 @@ app.post('/dea-detector', async (req, res) => {
 // Start the server and pre-load the list
 async function startServer() {
     try {
-        await cronJob()
-        await checkEmailForDEA('initial_load'); // Trigger the initial load
+        // await getRemoteBlacklist()
+        await verifyEmail('initial_load'); // Trigger the initial load
         app.listen(port, host, () => {
             console.log(`Server listening on http://localhost:${port}`);
         });

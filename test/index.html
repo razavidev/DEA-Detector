@@ -4,29 +4,286 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DEA Detector</title>
+    <title>DEA Detector App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --light-bg-color: #f0f4f8;
+            --dark-font-color: #334155;
+            --danger-color: #ef4444;
+            --success-color: #22c55e;
+            --warn-color: #f59e0b;
+            --primary-button-color: #3b82f6;
+            --secondary-button-color: #f1f5f9;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light-bg-color);
+            transition: background-color 0.5s ease-in-out;
+            color: var(--dark-font-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        body.danger {
+            background-color: var(--danger-color);
+        }
+
+        body.success {
+            background-color: var(--success-color);
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--dark-font-color);
+        }
+
+        #emailInput {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 50px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        #emailInput::placeholder {
+            color: #94a3b8;
+        }
+
+        #emailInput:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        button {
+            background-color: var(--primary-button-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        button:disabled {
+            opacity: .7;
+            pointer-events: none;
+        }
+
+        .show-popup-btn {
+            background-color: var(--secondary-button-color);
+            color: var(--dark-font-color);
+            border: 1px solid #cbd5e1;
+        }
+
+        button:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        .show-popup-btn:hover {
+            background-color: #e5e7eb;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .popup-overlay {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 1000;
+        }
+
+        .popup-overlay.is-visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .popup {
+            background-color: white;
+            width: 95vw;
+            max-width: 900px;
+            padding: 40px;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .popup-overlay.is-visible .popup {
+            transform: scale(1);
+        }
+
+        .popup-header {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .popup-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #1f2937;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #6b7280;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: color 0.3s ease, background-color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background-color: #e5e7eb;
+            color: #1f2937;
+        }
+
+        .popup-body {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #4b5563;
+            text-align: left;
+        }
+
+        .popup-body p.danger {
+            color: var(--danger-color);
+        }
+
+        .popup-body p.success {
+            color: var(--success-color);
+        }
+
+        .popup-body p.warn {
+            color: var(--warn-color);
+        }
+
+        .popup-body .bold {
+            font-weight: 600;
+        }
+
+        #result {
+            font-weight: bold;
+        }
+
+        #result.danger {
+            color: var(--danger-color);
+        }
+
+        #result.success {
+            color: var(--success-color);
+        }
+
+        #result.warn {
+            color: var(--warn-color);
+        }
+
+        @media (max-width: 768px) {
+            .popup-header {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .close-btn {
+                justify-self: center;
+            }
+        }
+    </style>
 </head>
 
-<body style="padding: 1em; font-family: Arial, Helvetica, sans-serif;">
-    <h1>Disposable Email Detector</h1>
-    <form id="dea-form">
-        <label for="value-input">Email Address: </label>
-        <input type="text" id="value-input" name="value" placeholder="jhondoe@gmail.com" required>
-        <button type="submit">Submit</button>
-    </form>
-    <div id="response-message" style="padding: .5em 0; font-weight: bold;"></div>
-    <div id="response-details" style="padding: .5em 0;"></div>
+<body>
+    <div class="container">
+        <h1>Please Input Email Address</h1>
+        <input id="emailInput" required autofocus placeholder="e.g. johndoe@gmail.com.." />
+        <button id="submitButton">Check</button>
+        <div id="result" style="padding-bottom: .5em;"></div>
+        <button id="showPopupBtn" style="display: none;" class="show-popup-btn">Show Details</button>
+    </div>
 
+    <div class="popup-overlay" id="infoPopup">
+        <div class="popup">
+            <div class="popup-header">
+                <h2>Details</h2>
+                <button class="close-btn">Close</button>
+            </div>
+            <div class="popup-body">
+            </div>
+        </div>
+    </div>
 
     <script>
-        document.getElementById('dea-form').addEventListener('submit', async function (ev) {
-            ev.preventDefault();
+        const emailInput = document.getElementById("emailInput");
+        const submitButton = document.getElementById('submitButton');
+        const resultDiv = document.getElementById('result');
+        const popupOverlay = document.getElementById('infoPopup');
+        const popupDiv = popupOverlay.querySelector('.popup-body')
+        const detailsBtn = document.getElementById('showPopupBtn');
+        const closeButton = document.querySelector('.close-btn');
 
-            const inputValue = document.getElementById('value-input').value;
-            const responseDiv = document.getElementById('response-message');
-            const detialsDiv = document.getElementById('response-details');
-            responseDiv.textContent = 'Checking...';
-            responseDiv.style.color = 'gray';
+
+        submitButton.addEventListener('click', async (ev) => {
+            const inputValue = emailInput.value;
+
+            ev.preventDefault();
+            console.log('clicked', Math.random())
+            submitButton.textContent = 'Checking...';
+            submitButton.disabled = true;
 
             try {
                 const response = await fetch('/dea-detector', {
@@ -40,24 +297,47 @@
                 const res = await response.json();
 
                 if (response.ok) {
-                    if (res.data.isDEA) {
-                        console.log(res.data);
-                        responseDiv.textContent = `'${res.value}' is a Disposable Email Address.`;
-                        detialsDiv.innerText = Object.keys(res.data.details).map(key => `${key}: ${res.data.details[key]} \n`).join('');
-                        responseDiv.style.color = 'red';
+                    console.log(res.data);
+
+                    if (res.data.isValid) {
+                        resultDiv.className = 'success';
+                        resultDiv.textContent = `'${res.value}' is a Valid Email Address.`;
                     } else {
-                        responseDiv.textContent = `'${res.value}' is NOT a Disposable Email Address.`;
-                        detialsDiv.innerText = Object.keys(res.data.details).map(key => `${key}: ${res.data.details[key]} \n`).join('');
-                        responseDiv.style.color = 'green';
+                        resultDiv.className = 'danger';
+                        resultDiv.textContent = `'${res.value}' is NOT a Valid Email Address.`;
                     }
+
+                    popupDiv.innerText = Object.keys(res.data.details).map(key => `${key}: ${res.data.details[key]} \n`).join('');
+                    
+                    detailsBtn.style.display = "block"
                 } else {
-                    responseDiv.textContent = `Error: ${res.error}`;
-                    responseDiv.style.color = 'red';
+                    resultDiv.className = 'danger';
+                    resultDiv.textContent = `Error: ${res.error}`;
+                    resultDiv.style.color = 'red';
                 }
             } catch (error) {
-                responseDiv.textContent = 'An error occurred. Please try again.';
-                responseDiv.style.color = 'red';
+                resultDiv.className = 'danger';
+                resultDiv.textContent = 'An error occurred. Please try again.';
+                resultDiv.style.color = 'red';
                 console.error('Fetch error:', error);
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = "Check";
+
+            }
+        });
+
+        detailsBtn.addEventListener('click', () => {
+            popupOverlay.classList.add('is-visible');
+        });
+
+        closeButton.addEventListener('click', () => {
+            popupOverlay.classList.remove('is-visible');
+        });
+
+        popupOverlay.addEventListener('click', (event) => {
+            if (event.target === popupOverlay) {
+                popupOverlay.classList.remove('is-visible');
             }
         });
     </script>

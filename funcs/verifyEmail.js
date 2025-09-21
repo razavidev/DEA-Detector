@@ -1,6 +1,7 @@
 import { promises as dns } from "dns";
 import { queryBlacklist } from "./queryBlacklist.js";
-
+import isDomainCatchAll from "./isDomainCatchAll.js";
+import doesEmailAddrExist from "./ping-email-verify.js";
 
 function shannonEntropy(s) {
     if (s.length === 0) return 0;
@@ -88,25 +89,26 @@ const MAJOR_PROVIDERS = new Set([
     'zoho.com'
 ]);
 
-
 function getEmailParts(email) {
     const parts = email.split('@');
     return parts.length === 2 ? { localPart: parts[0], domain: parts[1].toLowerCase() } : null;
 }
 
+async function verifyEmail(email) {
 
-async function checkEmailForDEA(email) {
     let score = 0.0;
     const details = {
         domain: null,
         localPart: null,
         isMajorProvider: false,
+        isCatchAll: false,
         mxRecordsFound: false,
         suspiciousMxHostname: false,
         aaaaRecordsFound: false,
         spfRecordFound: false,
         isBlacklisted: false,
         shufflenessScore: 0,
+        doesEmailExist: null,
     };
 
     const parts = getEmailParts(email);
@@ -118,23 +120,32 @@ async function checkEmailForDEA(email) {
 
     // --- Scoring Logic ---
 
-    // Factor 1: Major Provider Check (Weight: 0.2)
+    // Factor 1: Does Email Address Exist (Weight 0.7)
+    const doesEmailExist = await doesEmailAddrExist(email)
+    console.log("DOES EMAIL ADDRESS EXIST: ",doesEmailExist)
+    details.doesEmailExist = doesEmailExist
+    score += !doesEmailExist ? 0.7 : 0
+
+    // Factor 2: Major Provider Check (Weight: 0.2)
     details.isMajorProvider = MAJOR_PROVIDERS.has(details.domain);
     if (!details.isMajorProvider) {
         score += 0.2;
     }
 
-    // Factor 2: DNS Record Checks
+    // Factor 3: DNS Record Checks
     try {
         const mxRecords = await dns.resolveMx(details.domain);
         // console.log(mxRecords);
         details.mxRecordsFound = mxRecords && mxRecords.length > 0;
         if (details.mxRecordsFound) {
+
             // Check for suspicious MX hostnames
             const mxHostname = mxRecords[0].exchange;
             const mxDomain = mxHostname.split('.').slice(-2).join('.');
+
             // If MX record doesn't point to major provider and hostname seems off
             if (!details.isMajorProvider && mxDomain !== details.domain && !MAJOR_PROVIDERS.has(mxDomain)) {
+
                 // Heuristic for suspicious MX: generic names, known DEA indicators
                 if (/(tempmail|guerrilla|mailinator)/i.test(mxHostname) || /^mx\./.test(mxHostname)) {
                     details.suspiciousMxHostname = true;
@@ -174,19 +185,26 @@ async function checkEmailForDEA(email) {
         }
     }
 
-    // Factor 3: Local Part Randomness (Weight: 0.3)
+    // Factor 4: Local Part Randomness (Weight: 0.3)
     const shufflenessScore = checkStringRandomness(details.localPart);
     details.shufflenessScore = shufflenessScore;
     score += shufflenessScore * 0.3;
 
-    // Factor 4: Is Domain Blacklisted (Weight: 0.7)
+    // Factor 5: Is Domain Catch-all (Weight: 0.1)
+    const isCatchAll = await isDomainCatchAll(email)
+    details.isCatchAll = isCatchAll
+    score += isCatchAll ? 0.1 : 0
+
+    // Factor 6: Is Domain Blacklisted (Weight: 0.7)
     const isBlacklisted = await queryBlacklist(details.domain);
     details.isBlacklisted = isBlacklisted;
     score += isBlacklisted ? 0.7 : 0;
 
     // Cap score at 1.0
     const finalScore = Math.min(1.0, score);
-    return { isDEA: finalScore > 0.70, details };
+  
+    return { isValid: !(finalScore > 0.70), details };
 }
 
-export default checkEmailForDEA;
+
+export default verifyEmail;

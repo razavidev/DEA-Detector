@@ -2,7 +2,7 @@ import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 
 
-async function cronJob() {
+async function getRemoteBlacklist() {
     const db = await open({
         filename: '../disposable_emails.db',
         driver: sqlite3.Database
@@ -55,4 +55,4 @@ async function cronJob() {
     }
 }
 
-export default cronJob
+export default getRemoteBlacklist
