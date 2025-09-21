@@ -38,7 +38,7 @@ app.post('/dea-detector', async (req, res) => {
 // Start the server and pre-load the list
 async function startServer() {
     try {
-        // await getRemoteBlacklist()
+        await getRemoteBlacklist()
         await verifyEmail('initial_load'); // Trigger the initial load
         app.listen(port, host, () => {
             console.log(`Server listening on http://localhost:${port}`);
